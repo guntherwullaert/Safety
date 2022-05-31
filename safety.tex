@@ -1,0 +1,248 @@
+\documentclass{article}
+\usepackage{bm}
+\usepackage{breqn}
+\usepackage{amsmath}
+
+\title{Definition of Safety}
+\author{Günther Wullaert}
+\date{May 2022}
+
+\newcommand{\pool}[1]{\boldsymbol{#1}}
+\newcommand{\tuple}[1]{\dot{#1}}
+
+\newcommand{\provide}[2]{\{(\{#1\}, \{#2\})\}}
+\newcommand{\provideM}[4]{\{(\{#1\}, \{#2\}), (\{#3\},\{#4\})\}}
+\newcommand{\provideMM}[6]{\{(\{#1\}, \{#2\}), (\{#3\},\{#4\}), (\{#5\},\{#6\})\}}
+\newcommand{\provideMMM}[8]{\{(\{#1\}, \{#2\}), (\{#3\},\{#4\}), (\{#5\},\{#6\}), (\{#7\},\{#8\})\}}
+
+\begin{document}
+	\maketitle
+	
+	\section{Language}
+	\subsection{Term and Pools}
+	
+	We inductively define terms as
+	\begin{itemize}
+		\item all numerals, symbolic constants, and variables are terms 
+		\item $f(\pool{t})$ is a term, if $f$ is a symbolic constant and $\pool{t}$ is a pool
+		\item ($t_1 \star t_2$) is a term, if $t_1$ and $t_2$ are terms and $\star$ is one of the symbols (+ - × / ..)
+		\item $\langle \pool{t} \rangle$ is a term, if $\pool{t}$ is a pool, which can have a possibly empty set of terms.
+	\end{itemize}
+	A tuple of terms has the following form $t_1,...,t_n$ where $t_i$ is a term.
+	\\
+	A pool is an expression of the form $\tuple{t_1};...;\tuple{t_n}$ where $n \ge 1$ and each $\tuple{t_i}$ is a tuple of terms. 
+	In particular, every tuple of terms is a pool.
+
+	\subsection{Constants}
+
+	We inductively define a term to be $\mathit{constant}$ if:
+	\begin{itemize}
+		\item it is a numeral
+		\item it has form $t \star u$ where t and u are $\mathit{constant}$ and $\star$ is one of the symbols (+ - × /)
+	\end{itemize}
+
+	\subsection{Atoms and Literals}
+	
+	An atom has form $p(\pool{t})$ where $p$ is a predicate symbol and $\pool{t}$ is a pool. 
+	\\
+	A literal is either an atom or atom preceded by not.
+
+	\section{Safety}
+	We define the function $\mathit{provide()}$ to check if a statement is safe. The provide function returns a set of tuples $\{\tuple{t_1}, ..., \tuple{t_n}\}$. Each tuple $\tuple{t_i}$ 
+	has the form $(p, d)$, where $p$ is a set of variables the statement provides if $d$ variables are provided. If 2 tuples share the same $d$, the $p$ can be merged. If 2 tuples share the same $p$, the $d$ can be merged.
+	\\ For example:
+	\begin{equation}
+		\provideM{X}{}{Y}{} = \provide{X,Y}{}
+	\end{equation}
+	\begin{equation}
+		\provideM{}{X}{}{Y} = \provide{}{X,Y}
+	\end{equation}
+
+	\subsection{Helper Functions}
+	The $\mathit{depend}$ function takes a set of tupels $\{(p_1, d_1), ..., (p_n, d_n)\}$ and sets $d_i = p_i \cup d_i$ and $p_i = \emptyset$ for each tuple $(p_i, d_i)$
+	\\ For Example:
+	\begin{align}
+		\begin{split}
+			depend(\provideM{X}{}{Y}{Z})
+			&= \provideM{}{X}{}{Y,Z} \\
+			&= \provide{}{X,Y,Z}
+		\end{split}
+	\end{align}
+	The $\mathit{merge}$ function takes a set of tupels $\{(p_1, d_1), ..., (p_n, d_n)\}$ and a set of variables $v$
+	\\ For Example:
+	\begin{dmath}
+		merge(\provide{X}{}, \{Y\})
+			= \provide{X}{Y}
+	\end{dmath}
+	The output of the $\mathit{depend}$ function will also always be in the form $\{(\{\}, d)\}$ where $d$ will contain all the variables. 
+	The output of the depend function can thus easily be converted to the input parameter $v$ of the $\mathit{merge}$ function.
+	\\ For Example:
+	\begin{dmath}
+		merge(\provide{X}{}, depend(\provide{Y}{})) = merge(\provide{X}{}, \{Y\})
+			= \provide{X}{Y}
+	\end{dmath}
+
+	\subsection{Terms}
+	\subsubsection{Constants}
+	For any numeral $n$ and symbolic constant $f$:
+	\begin{equation}
+		provide(n) = provide(f) = \emptyset
+	\end{equation}
+
+	\subsubsection{Variables}
+	For any variable $X$:
+	\begin{equation}
+		provide(X) = \provide{X}{}
+	\end{equation}
+
+	\subsubsection{Tuples}
+	For any tuple of terms $t_1,...,t_n$:
+	\begin{equation}
+		provide(t_1,...,t_n) = provide(t_1) \cup ... \cup provide(t_n)
+	\end{equation}
+	For Example:
+	\begin{dmath}
+		provide(X,Y) = provide(X) \cup provide(Y) = \provide{X}{} \cup \provide{Y}{} = \{(\{X\}, \{\}), (\{Y\}, \{\})\}
+		=  \provide{X,Y}{}
+	\end{dmath}
+
+	\subsubsection{Pools}
+	For any pool of terms $\tuple{t_1};...;\tuple{t_n}$:
+	\begin{equation}
+		provide(\tuple{t_1};...;\tuple{t_n}) = provide(\tuple{t_1}) \cap ... \cap provide(\tuple{t_n})
+	\end{equation}
+	For Example:
+	\begin{dmath}
+		provide(X,Y;Y) = provide(X,Y) \cap provide(Y) = provide(X,Y) \cap \provide{Y}{} 
+		= (provide(X) \cup provide(Y)) \cap \provide{Y}{}
+		= (\provide{X}{} \cup \provide{Y}{}) \cap \provide{Y}{}
+		= \provide{X,Y}{} \cap \provide{Y}{} = \provide{Y}{}
+	\end{dmath}
+
+	\subsubsection{Terms}
+	For a term of form $f(\pool{t})$, where $f$ a symbolic constant and $\pool{t}$ a pool:
+	\begin{equation}
+		provide(f(\pool{t})) = provide(\pool{t})
+	\end{equation}
+	For Example:
+	\begin{dmath}
+		provide(f(X)) = provide(X) = \provide{X}{}
+	\end{dmath}
+	%%
+	For a term of form $t_1 \star t_2$, where $t_1$ and $t_2$ are terms which are not $\mathit{constants}$ and $\star$ is one of the symbols (+ - × / ..):
+	\begin{equation}
+		provide(t_1 \star t_2) = depend(provide(t_1) \cup provide(t_2))
+	\end{equation}
+	For Example:
+	\begin{dmath}
+		provide(X * Y) = depend(provide(X) \cup provide(Y)) = depend(\provide{X}{} \cup \provide{Y}{}) = depend(\provide{X,Y}{}) = \provide{}{X,Y}
+	\end{dmath}
+	\begin{dmath}
+		provide((X * Y)+ Z) = depend(provide(X * Y) \cup provide(Z)) = depend(\provide{}{X,Y} \cup \provide{Z}{}) = depend(\provide{Z}{X,Y}) = \provide{}{X,Y,Z}
+	\end{dmath}
+	For a term of form $t \star c$, where $c$ is a $\mathit{constant}$ and $t$ is a term the following holds for $\star$ being one of the symbols (+ - x):
+	\begin{equation}
+		provide(t \star c) = provide(c \star t) = provide(t)
+	\end{equation}
+	For Example:
+	\begin{dmath}
+		provide(X + 1) = provide(X) = \provide{X}{}
+	\end{dmath}
+	%%
+	For a term of form $-t$, where $t$ is a term:
+	\begin{equation}
+		provide(-t) = provide(t)
+	\end{equation}
+	For Example:
+	\begin{dmath}
+		provide(-X) = provide(X) = \provide{X}{}
+	\end{dmath}
+
+	\subsection{Atoms and Literals}
+	\subsubsection{Atoms}
+	For an atom of form $p(\pool{t})$, where $\pool{t}$ is a pool:
+	\begin{equation}
+		provide(p(\pool{t})) = provide(\pool{t})
+	\end{equation}
+	For Example:
+	\begin{dmath}
+		provide(p(X;Y)) = provide(X;Y) = provide(X) \cap provide(Y) = \provide{X}{} \cap \provide{Y}{} = \emptyset
+	\end{dmath}
+
+	\subsubsection{Literals}
+	For an literal of form $not \quad a$, where $a$ is an atom:
+	\begin{equation}
+		provide(not \quad a) = depend(provide(a))
+	\end{equation}
+	For Example:
+	\begin{dmath}
+		provide(not \quad p(X)) = depend(provide(p(X))) = depend(provide(X)) = depend(\provide{X}{}) = \provide{}{X}
+	\end{dmath}
+	For an literal of form $a$, where $a$ is an atom:
+	\begin{equation}
+		provide(a) = provide(a)
+	\end{equation}
+	For an literal of form $not \quad l$, where $l$ is another literal:
+	\begin{equation}
+		provide(not \quad l) = depend(provide(l))
+	\end{equation}
+
+	\subsection{Comparisons}
+	\subsubsection{Comparisons}
+	For an comparison of form $t_1 \star t_2$, where $t_1$ and $t_2$ are terms and $\star$ is one of the symbols ($\leq,\ge,<,>,\neq$):
+	\begin{equation}
+		provide(t_1 \star t_2) = depend(provide(t_1) \cup provide(t_2))
+	\end{equation}
+	For Example:
+	\begin{dmath}
+		provide(X \ge Y) = depend(provide(X) \cup provide(Y)) = depend(\provide{X}{} \cup \provide{Y}{}) 
+		= depend(\provide{X, Y}{}) = \provide{}{X,Y} 
+	\end{dmath}
+
+	\subsubsection{Assignments}
+	For an comparison of form $t_1 = t_2$, where $t_1$ and $t_2$ are terms:
+	\begin{dmath}
+		provide(t_1 = t_2) = merge(provide(t_1), depend(provide(t_2))) \cup  merge(provide(t_2), depend(provide(t_1)))
+	\end{dmath}
+	For Example:
+	\begin{dmath}
+		provide(X = Y) = merge(provide(X), depend(provide(Y))) \cup  merge(provide(Y), depend(provide(X)))
+		= merge(\provide{X}{}, depend(\provide{Y}{})) \cup  merge(\provide{Y}{}, depend(\provide{X}{}))
+		= merge(\provide{X}{}, {Y}) \cup merge(\provide{Y}{}, {X})
+		= \provide{X}{Y} \cup \provide{Y}{X}
+		= \provideM{X}{Y}{Y}{X}
+	\end{dmath}
+	Hypothetical Example (I don't know how to create this situation in clingo):
+	\begin{dmath}
+		provide(\provideM{X}{}{}{Y} = \provideM{Z}{}{T}{W}) 
+		= merge(\provideM{X}{}{}{Y}, depend(\provideM{Z}{}{T}{W})) \cup  merge(\provideM{Z}{}{T}{W}, depend(\provideM{X}{}{}{Y}))
+		= merge(\provideM{X}{}{}{Y}, \{T,W,Z\}) \cup merge(\provideM{Z}{}{T}{W}, \{X,Y\})
+		= \provideM{X}{T,W,Z}{}{T,W,Y,Z} \cup \provideM{Z}{X,Y}{T}{W,X,Y}
+		= \provideMMM{X}{T,W,Z}{}{T,W,Y,Z}{Z}{X,Y}{T}{W,X,Y}
+	\end{dmath}
+
+	\subsection{Rule}
+	For a rule $r$ in the form of
+	\begin{equation}
+		H_1 \lor ... \lor H_k  \leftarrow B_1 \land ... \land B_m 
+	\end{equation}
+	The following holds:
+	\begin{dmath}
+		provide(r) = depend(provide(H_1)) \cup ... \cup depend(provide(H_k)) \cup provide(B_1) \cup ... \cup provide(B_m)
+	\end{dmath}
+	For Example:
+	\begin{dmath}
+		provide(a(X) \leftarrow b(X)) = depend(provide(a(X))) \cup provide(b(X)) = depend(provide(X)) \cup provide(X)
+		= depend(\provide{X}{}) \cup \provide{X}{} = \provide{}{X} \cup \provide{X}{} = \provideM{}{X}{X}{}
+	\end{dmath}
+
+	\section{Other Examples}
+	\begin{dmath}
+		provide(p(X,Y+Y)) = provide(X, Y+Y) = provide(X) \cup provide(Y+Y) 
+		= \provide{X}{} \cup depend(provide(Y) \cup provide(Y))
+		= \provide{X}{} \cup depend(\provide{Y}{} \cup \provide{Y}{})
+		= \provide{X}{} \cup depend(\provide{Y}{})
+		= \provide{X}{} \cup \provide{}{Y}
+		= \provideM{X}{}{}{Y}
+	\end{dmath}
+\end{document}
