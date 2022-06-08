@@ -99,6 +99,7 @@
 		dt(\tuple{t_1};...;\tuple{t_n}) &= dt(\tuple{t_1}) \cup \dots \cup dt(\tuple{t_n})
 	\end{align}
 
+	%% Function 
 	\subsubsection{Terms}
 	For a term of form $f(\pool{t})$, where $f$ a symbolic constant and $\pool{t}$ a pool:
 	\begin{align}
@@ -123,6 +124,7 @@
 		pt(-t) &= pt(t) \\
 		dt(-t) &= dt(t)
 	\end{align}
+	%% Star is not correct, calculate if 0 arithmetically eval/nonzero
 	For a term of form $t*0$, where $t$ is a term:
 	\begin{align}
 		pt(t*0) &= pt(0*t) = \emptyset \\
@@ -141,6 +143,7 @@
 	\begin{equation}
 		dep(not \; a) = \set{(\emptyset, vars(a))}
 	\end{equation}
+	%% take atom definition here
 	For an literal of form $a$, where $a$ is an atom:
 	\begin{equation}
 		dep(a) = dep(a)
@@ -163,6 +166,7 @@
 
 	\subsection{Rule}
 	For a rule $r$ in the form of
+	%% m und n 
 	\begin{equation}
 		H_1 \lor ... \lor H_k  \leftarrow B_1 \land ... \land B_m 
 	\end{equation}
@@ -195,4 +199,16 @@
 		= \set{(\emptyset, \set{Y}), (\set{X}, \emptyset), (\emptyset, \emptyset), (\set{X}, \set{Y}), (\set{Y}, \set{X}), (\emptyset, \emptyset)}
 		= \set{(\emptyset, \set{Y}), (\set{X}, \emptyset), (\emptyset, \emptyset), (\set{X}, \set{Y}), (\set{Y}, \set{X})}
 	\end{dmath}
+
+	\newcommand\Vars[1]{\mathit{vars}(#1)}
+\newcommand\DP[1]{\mathit{dep}(#1)}
+\newcommand\CheckOp[1]{C_{#1}}
+\newcommand\CheckAp[2]{\CheckOp{#1}{#2}}
+
+We define operator~$\CheckOp{r}$ for a rule~$r$ applied to a set of variables~$V$ as
+\begin{align}
+\CheckAp{r}{V} &= \bigcup_{(P,D) \in \DP{r}, D \subseteq V} P.
+\end{align}
+
+A rule~$r$ is safe if $\Vars{r}$ is the least fixed point of $\CheckOp{r}$.
 \end{document}
