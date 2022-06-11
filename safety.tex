@@ -1,6 +1,6 @@
 \documentclass{article}
-\usepackage{bm}
-\usepackage{breqn}
+%\usepackage{bm}
+%\usepackage{breqn}
 \usepackage{amsmath}
 
 \title{Definition of Safety}
@@ -17,6 +17,11 @@
 \newcommand{\provideMM}[6]{\{(\{#1\}, \{#2\}), (\{#3\},\{#4\}), (\{#5\},\{#6\})\}}
 \newcommand{\provideMMM}[8]{\{(\{#1\}, \{#2\}), (\{#3\},\{#4\}), (\{#5\},\{#6\}), (\{#7\},\{#8\})\}}
 
+\newcommand\Vars[1]{\mathit{vars}(#1)}
+\newcommand\DP[1]{\mathit{dep}(#1)}
+\newcommand\CheckOp[1]{C_{#1}}
+\newcommand\CheckAp[2]{\CheckOp{#1}({#2})}
+
 \begin{document}
 	\maketitle
 	
@@ -25,190 +30,171 @@
 	
 	We inductively define terms, tuples of terms, and pools as
 	\begin{itemize}
-		\item all numerals, symbolic constants, and variables are terms 
-		\item $f(\pool{t})$ is a term, if $f$ is a symbolic constant and $\pool{t}$ is a pool
-		\item ($t_1 \star t_2$) is a term, if $t_1$ and $t_2$ are terms and $\star$ is one of the symbols (+ - × / ..)
-		\item $\langle \pool{t} \rangle$ is a term, if $\pool{t}$ is a pool, which can have a possibly empty set of terms.
-		\item $t_1,...,t_n$ is a tuple of terms, if $n \ge 0$ and $t_i$ is a term.
-  		\item $\tuple{t_1};...;\tuple{t_n}$ is a pool, if $n \ge 1$ and each $\tuple{t_i}$ is a tuple of terms. In particular, every tuple of terms is a pool.
+		\item all numerals, symbolic constants, and variables are terms,
+		\item $f(\pool{t})$ is a term, if $f$ is a symbolic constant and $\pool{t}$ is a pool,
+		\item $t_1 \star t_2$ is a term, if $\star$ is among the symbols +, -, $\times$, / or .. and $t_1$, $t_2$ are terms,
+		\item $\langle \pool{t} \rangle$ is a term, if $\pool{t}$ is a pool, which can have a possibly empty set of terms,
+		\item $t_1,...,t_n$ is a tuple of terms, if $n \ge 0$ and $t_i$ is a term,
+  		\item $\tuple{t_1};...;\tuple{t_n}$ is a pool, if $n \ge 1$ and each $\tuple{t_i}$ is a tuple of terms.
 	\end{itemize}
 
 	\subsection{Constants}
 
-	We inductively define a term to be $\mathit{constant}$ if:
+	We inductively define a term to be $\mathit{constant}$ if
 	\begin{itemize}
-		\item it is a numeral
-		\item it has form $t \star u$ where t and u are $\mathit{constant}$ and $\star$ is one of the symbols (+ - × /)
+		\item it is a numeral,
+		\item it has form $t \star u$ where t and u are $\mathit{constant}$ and $\star$ is among the symbols +, -, $\times$ or /.
 	\end{itemize}
 
 	\subsection{Atoms and Literals}
 	
 	An atom has form $p(\pool{t})$ where $p$ is a predicate symbol and $\pool{t}$ is a pool. 
 	\\
-	A literal is either an atom or atom preceded by not.
-
-	\subsection{Comparisons}
-
-	A comparison has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and $\prec$ is on of the symbols ($\leq,\ge,<,>,\neq$)
+	A literal is either an atom, atom preceded by not, comparison literal or comparison literal preceded by not.
+	\\
+	A comparison literal has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and $\prec$ is $\leq,\ge,<,>$ or $\neq$
 
 	\subsection{Rules}
 
 	A rule $r$ has the form
 	\begin{equation}
-		H_1 \lor ... \lor H_k  \leftarrow B_1 \land ... \land B_m 
+		H_1 \lor ... \lor H_m  \leftarrow B_1 \land ... \land B_n 
 	\end{equation}
-	($k, m \ge 0$), where each $H_i$ is either a symbolic literal, literal or an comparison and each $B_j$ is either a symbolic symbolic literal, literal or an comparison.
-	$H_1 \lor ... \lor H_k$ is called the head. $B_1 \land ... \land B_m$ is called the body.
+	($m, n \ge 0$), where each $H_i$ and $B_j$ are a literal.
+	$H_1 \lor ... \lor H_m$ is called the head. $B_1 \land ... \land B_n$ is called the body.
 
 	\section{Safety}
-	We define the function $\mathit{provide()}$. The provide function returns a set of pairs. Each pair
-	has the form $(p, d)$, where $p$ is a set of variables the statement provides if $d$ variables are provided.
-
-	\subsection{Helper Functions}
-	The $\mathit{vars(e)}$ function returns all variables in an expression.
+	We define operator~$\CheckOp{r}$ for a rule~$r$ applied to a set of variables~$V$ as
+	\begin{align*}
+	\CheckAp{r}{V} &= \bigcup_{(P,D) \in \DP{r}, D \subseteq V} P.
+	\end{align*}
+	A rule~$r$ is safe if $\Vars{r}$ is the least fixed point of $\CheckOp{r}$.
+	\paragraph{}
+	The $\mathit{vars(e)}$ function returns all variables for an expression $e$.
 	\\ For Example:
-	\begin{equation}
+	\begin{equation*}
 		vars(a(X) = b(Y)) = \set{X,Y}
-	\end{equation}
+	\end{equation*}
+	\paragraph{}
+	The $\mathit{eval(c)}$ function takes a constant term and returns the arithmetical evaluation of that term. If this function for a $\mathit{constant}$ returns a value that is not zero a $\mathit{constant}$ is called $\mathit{nonzero}$.
+	\begin{align*}
+		\mathit{eval(c)} &= c \\
+		\mathit{eval(a + b)} &= (eval(a) + eval(b)) \\
+		\mathit{eval(a - b)} &= (eval(a) - eval(b)) \\
+		\mathit{eval(a \times b)} &= (eval(a) \times eval(b)) \\
+		\mathit{eval(a / b)} &= (eval(a) \div eval(b))
+	\end{align*}
+	\\ For Example:
+	\begin{align*}
+		eval(5 + 3 \times 2) &= (eval(5 + 3) \times eval(2)) \\
+		&= ((eval(5) + eval(3)) \times 2) \\
+		&= ((5 + 3) \times 2)
+		= (8 \times 2)
+		= 16
+	\end{align*}
 
 	\subsection{Terms}
 	\subsubsection{Constants}
-	For any numeral $n$ and symbolic constant $f$:
-	\begin{equation}
+	For any numeral $n$ and symbolic constant $f$
+	\begin{equation*}
 		pt(n) = pt(f) = dt(n) = dt(f) = \emptyset
-	\end{equation}
+	\end{equation*}
 
 	\subsubsection{Variables}
-	For any variable $X$:
-	\begin{align}
+	For any variable $X$
+	\begin{align*}
 		pt(X) &= \set{X} \\
 		dt(X) &= \emptyset
-	\end{align}
+	\end{align*}
 
 	\subsubsection{Tuples}
-	For any tuple of terms $t_1,...,t_n$:
-	\begin{align}
+	For any tuple of terms $t_1,...,t_n$
+	\begin{align*}
 		pt(t_1,...,t_n) &= pt(t_1) \cup \dots \cup pt(t_n) \\
 		dt(t_1,...,t_n) &= dt(t_1) \cup \dots \cup dt(t_n)
-	\end{align}
+	\end{align*}
 
 	\subsubsection{Pools}
-	For any pool of terms $\tuple{t_1};...;\tuple{t_n}$:
-	\begin{align}
+	For any pool of terms $\tuple{t_1};...;\tuple{t_n}$
+	\begin{align*}
 		pt(\tuple{t_1};...;\tuple{t_n}) &= pt(\tuple{t_1}) \cap \dots \cap pt(\tuple{t_n}) \\
 		dt(\tuple{t_1};...;\tuple{t_n}) &= dt(\tuple{t_1}) \cup \dots \cup dt(\tuple{t_n})
-	\end{align}
+	\end{align*}
 
 	%% Function 
-	\subsubsection{Terms}
-	For a term of form $f(\pool{t})$, where $f$ a symbolic constant and $\pool{t}$ a pool:
-	\begin{align}
+	\subsubsection{Functions}
+	For a term of form $f(\pool{t})$, where $f$ is a function and $\pool{t}$ a pool
+	\begin{align*}
 		pt(f(\pool{t})) &= pt(\pool{t}) \\
 		dt(f(\pool{t})) &= dt(\pool{t})
-	\end{align}
+	\end{align*}
 	%%
-	For a term of form $a \star b$, where $a,b$ are terms and one of them is a $\mathit{constant}$ and $\star$ is one of the symbols (+ - x) or $a$ and $b$ are both constant and $\star$ is one of the symbols (+ - × / ..):
-	\begin{align}
-		pt(a \star b) &= pt(b \star a) = pt(a) \cup pt(b) \\
-		dt(a \star b) &= dt(b \star a) = dt(a) \cup dt(b)
-	\end{align}
+	\subsubsection{Arithmetics}
+	For a term of form $t \times c$, where $t$ is a term and $c$ a constant and $\mathit{eval}(c) = 0$
+	\begin{align*}
+		pt(t \times c) &= \emptyset \\
+		dt(t \times c) &= \emptyset
+	\end{align*}
+	For a term of form $a \star b$, where $a,b$ are terms and one of them is a $\mathit{constant}$ and the $\mathit{constant}$ is $\mathit{nonzero}$ and $\star$ is among the symbols +, - or $\times$ or $a$ and $b$ are both $\mathit{constant}$ and $\star$ is among the symbols +, -, $\times$, / or ..
+	\begin{align*}
+		pt(a \star b) &= pt(a) \cup pt(b) \\
+		dt(a \star b) &= dt(a) \cup dt(b)
+	\end{align*}
 	%%
-	Otherwise for a term of form $a \star b$:
-	\begin{align}
+	Otherwise for a term of form $a \star b$
+	\begin{align*}
 		pt(a \star b) &= \emptyset \\
 		pt(a \star b) &= vars(a \star b)
-	\end{align}
+	\end{align*}
 	%%
-	For a term of form $-t$, where $t$ is a term:
-	\begin{align}
+	For a term of form $-t$, where $t$ is a term
+	\begin{align*}
 		pt(-t) &= pt(t) \\
 		dt(-t) &= dt(t)
-	\end{align}
-	%% Star is not correct, calculate if 0 arithmetically eval/nonzero
-	For a term of form $t*0$, where $t$ is a term:
-	\begin{align}
-		pt(t*0) &= pt(0*t) = \emptyset \\
-		dt(t*0) &= dt(0*t) = \emptyset
-	\end{align}
+	\end{align*}
 
 	\subsection{Atoms and Literals}
-	\subsubsection{Atoms}
-	For an atom of form $p(\pool{t})$, where $\pool{t}$ is a pool:
-	\begin{equation}
-		dep(p(\pool{t})) = \dep{pt(\pool{t}), \emptyset}{\emptyset, dt(\pool{t})}
-	\end{equation}
-
-	\subsubsection{Literals}
-	For an literal of form $not \; a$, where $a$ is an atom:
-	\begin{equation}
+	\subsubsection{Atoms and Literals}
+	For an literal of form $not \; a$, where $a$ is an atom
+	\begin{equation*}
 		dep(not \; a) = \set{(\emptyset, vars(a))}
-	\end{equation}
-	%% take atom definition here
-	For an literal of form $a$, where $a$ is an atom:
-	\begin{equation}
-		dep(a) = dep(a)
-	\end{equation}
-	For an literal of form $not \; l$, where $l$ is another literal:
-	\begin{equation}
-		dep(not \; l) = \set{(\emptyset, vars(a))}
-	\end{equation}
+	\end{equation*}
+	For an atom of form $p(\pool{t})$, where $\pool{t}$ is a pool
+	\begin{equation*}
+		dep(p(\pool{t})) = \dep{pt(\pool{t}), \emptyset}{\emptyset, dt(\pool{t})}
+	\end{equation*}
 
-	\subsection{Comparisons}
-	\subsubsection{Comparisons}
-	For an comparison of form $a \prec b$, where $a$ and $b$ are terms and $\prec$ is one of the symbols ($\leq,\ge,<,>,\neq$):
-	\begin{equation}
+	\subsubsection{Comparison Literals}
+	For an comparison literal of form $a \prec b$, where $a$ and $b$ are terms and $\prec$ is among the symbols $\leq,\ge,<,>,\neq$
+	\begin{equation*}
 		dep(a \prec b) = \set{(\emptyset, vars(a \prec b))}
-	\end{equation}
-	For an comparison of form $a = b$, where $a$ and $b$ are terms:
-	\begin{equation}
+	\end{equation*}
+	For an comparison literal of form $a = b$, where $a$ and $b$ are terms
+	\begin{equation*}
 		dep(a = b) = \set{(pt(a), vars(b)), (pt(b), vars(a)), (\emptyset, dt(a) \cup dt(b))}
-	\end{equation}
+	\end{equation*}
+	For an literal of form $not \; a \prec b$, where $a$ and $b$ are terms
+	\begin{align*}
+		dep(not \; a = b) &= dep(a \neq b) \\
+		dep(not \; a \neq b) &= dep(a = b) \\
+		dep(not \; a \leq b) &= dep(a > b) \\
+		dep(not \; a > b) &= dep(a \leq b) \\
+		dep(not \; a \ge b) &= dep(a < b) \\
+		dep(not \; a < b) &= dep(a \ge b)
+	\end{align*}
+
 
 	\subsection{Rule}
-	For a rule $r$ in the form of
-	%% m und n 
-	\begin{equation}
-		H_1 \lor ... \lor H_k  \leftarrow B_1 \land ... \land B_m 
-	\end{equation}
-	The following holds:
-	\begin{dmath}
-		dep(r) = \set{(\emptyset, vars(H_1\vee ... \vee H_k))} \cup dep(B_1) \cup ... \cup dep(B_m)
-	\end{dmath}
-
-	\section{Extras}
-	If 2 pairs share the same $p$, the $d$ can be merged. If 2 pairs share the same $d$, the $p$ can be merged.
-	\\ For example:
-	\begin{equation}
-		\provideM{X}{}{Y}{} = \provide{X,Y}{}
-	\end{equation}
-	\begin{equation}
-		\provideM{}{X}{}{Y} = \provide{}{X,Y}
-	\end{equation}
+	For a rule $r$ in the form of (1) the following holds:
+	\begin{align*}
+		dep(r) &= \set{(\emptyset, vars(H_1\vee ... \vee H_k))} \cup dep(B_1) \cup ... \cup dep(B_m)
+	\end{align*}
 
 	\section{Other Examples}
-	\begin{dmath}
-		dep(p(X,Y+Y)) = \dep{pt(X,Y+Y), \emptyset}{\emptyset, dt(X,Y+Y)}
-		= \dep{pt(X) \cup pt(Y+Y), \emptyset}{\emptyset, dt(X) \cup dt(Y+Y)}
-		= \dep{\set{X} \cup \emptyset, \emptyset}{\emptyset, \emptyset \cup vars(Y+Y)}
-		= \dep{\set{X}, \emptyset}{\emptyset, \set{Y}}
-	\end{dmath}
-	\begin{dmath}
-		dep(a(Y) \leftarrow a(X), X=Y) = \set{(\emptyset, vars(a(Y)))} \cup dep(a(X)) \cup dep(X\mathit{=}Y)
-		= \set{(\emptyset, \set{Y})} \cup \dep{pt(a(X)), \emptyset}{\emptyset, dt(a(X))} \cup \set{(pt(X), vars(Y)), (pt(Y), vars(X)), (\emptyset, dt(X) \cup dt(Y))}
-		= \set{(\emptyset, \set{Y}), (pt(X), \emptyset), (\emptyset, dt(X)), (\set{X}, \set{Y}), (\set{Y}, \set{X}), (\emptyset, \emptyset \cup \emptyset)}
-		= \set{(\emptyset, \set{Y}), (\set{X}, \emptyset), (\emptyset, \emptyset), (\set{X}, \set{Y}), (\set{Y}, \set{X}), (\emptyset, \emptyset)}
-		= \set{(\emptyset, \set{Y}), (\set{X}, \emptyset), (\emptyset, \emptyset), (\set{X}, \set{Y}), (\set{Y}, \set{X})}
-	\end{dmath}
-
-	\newcommand\Vars[1]{\mathit{vars}(#1)}
-\newcommand\DP[1]{\mathit{dep}(#1)}
-\newcommand\CheckOp[1]{C_{#1}}
-\newcommand\CheckAp[2]{\CheckOp{#1}{#2}}
-
-We define operator~$\CheckOp{r}$ for a rule~$r$ applied to a set of variables~$V$ as
-\begin{align}
-\CheckAp{r}{V} &= \bigcup_{(P,D) \in \DP{r}, D \subseteq V} P.
-\end{align}
-
-A rule~$r$ is safe if $\Vars{r}$ is the least fixed point of $\CheckOp{r}$.
+	\begin{align*}
+		dep(p(X,Y+Y)) &= \dep{pt(X,Y+Y), \emptyset}{\emptyset, dt(X,Y+Y)}
+		\\ &= \dep{pt(X) \cup pt(Y+Y), \emptyset}{\emptyset, dt(X) \cup dt(Y+Y)}
+		\\ &= \dep{\set{X} \cup \emptyset, \emptyset}{\emptyset, \emptyset \cup vars(Y+Y)}
+		\\ &= \dep{\set{X}, \emptyset}{\emptyset, \set{Y}}
+	\end{align*}
 \end{document}
