@@ -52,13 +52,30 @@
 	\\
 	A literal is either an atom, atom preceded by not, comparison literal or comparison literal preceded by not.
 	\\
-	A comparison literal has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and $\prec$ is $\leq,\ge,<,>$ or $\neq$
+	A comparison literal has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and $\prec$ is among the symbols $\leq,\ge,<,>$ or $\neq$.
+	\\
+	A conditional literal has form $\tuple{t} : \tuple{c}$, where $t$ and $c$ are tuples.
+
+	\subsection{Aggregates}
+	An aggregate has one of the forms
+	\begin{align}
+		&\alpha\{l_1; \dots; l_n\} \prec_1 s_1 \label{aggregate1} \\
+		s_1 \prec_1 \; &\alpha\{l_1; \dots; l_n\} \label{aggregate2} \\
+		s_1 \prec_1 \; &\alpha\{l_1; \dots; l_n\} \prec_2 s_2 \label{aggregate3}
+	\end{align}
+	$(n \leq 0)$, where
+	\begin{itemize}
+		\item $\alpha$ is an aggregate name,
+		\item each $l_i$ is a conditional literal,
+		\item each $\prec_1, \prec_2$ is among the symbols $\leq,\ge,<,>,=$ or $\neq$,
+		\item each $s_1, s_2$ is a term.
+	\end{itemize}
 
 	\subsection{Rules}
 
 	A rule $r$ has the form
 	\begin{equation}
-		H_1 \lor ... \lor H_m  \leftarrow B_1 \land ... \land B_n 
+		H_1 \lor ... \lor H_m  \leftarrow B_1 \land ... \land B_n \label{rule}
 	\end{equation}
 	($m, n \ge 0$), where each $H_i$ and $B_j$ are a literal.
 	$H_1 \lor ... \lor H_m$ is called the head. $B_1 \land ... \land B_n$ is called the body.
@@ -183,9 +200,24 @@
 		dep(not \; a < b) &= dep(a \ge b)
 	\end{align*}
 
+	\subsubsection{Conditional Literals}
+	For an literal of form $\tuple{t} : \tuple{c}$, where $t$ and $c$ are tuples
+	\begin{align*}
+		dep(\tuple{t} : \tuple{c}) &= \emptyset
+	\end{align*}
+
+	\subsection{Aggregates}
+	For an aggregate $a$ of form (\ref{aggregate1}) or (\ref{aggregate2}), where $\prec_1$ is $=$
+	\begin{align*}
+		dep(a) &= \set{(vars(s_1), \emptyset)}
+	\end{align*}
+	Otherwise and for an aggregate $a$ of form (\ref{aggregate3})
+	\begin{equation*}
+		dep(a) = \emptyset
+	\end{equation*}
 
 	\subsection{Rule}
-	For a rule $r$ in the form of (1) the following holds:
+	For a rule $r$ in the form of (\ref{rule}) the following holds:
 	\begin{align*}
 		dep(r) &= \set{(\emptyset, vars(H_1\vee ... \vee H_k))} \cup dep(B_1) \cup ... \cup dep(B_m)
 	\end{align*}
