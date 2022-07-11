@@ -204,10 +204,10 @@
 	For a conditional literal of form $\tuple{t} : \tuple{c}$, where $t$ is a tuple of terms and $c$ is a tuple of comparison literals and atoms, where $G$ is the set of variables occuring globally in it.
 	\begin{align*}
 		dep(\tuple{t} : \tuple{c}) &= \set{(\emptyset, G \cup vars(s))}
-	\end{align*}xw
-	For an conditional literal of form $\tuple{t} : \tuple{c}$, where $t$ is a tuple of terms and $c$ is a tuple of comparison literals and atoms
+	\end{align*}
+	For an conditional literal of form $\tuple{t} : \tuple{c}$, where $t$ is a tuple of terms and $c$ is a tuple of comparison literals and atoms in a local context
 	\begin{align*}
-		dep(\tuple{t} : \tuple{c}) = \set{(\emptyset, vars(\tuple{t}))} \cup \bigcup_{e \in \tuple{c}} dep(e)
+		dep_l(\tuple{t} : \tuple{c}) = \set{(\emptyset, vars(\tuple{t}))} \cup \bigcup_{e \in \tuple{c}} dep(e)
 	\end{align*}
 
 	\subsection{Aggregates}
@@ -256,7 +256,7 @@
 	\\
 	We define operator~$\CheckOp{l,G}$ for an conditional literal~$l$ applied to a set of variables~$V$ as
 	\begin{align*}
-		\CheckAp{l,G}{V} &= G \cup \bigcup_{(P,D) \in \DP{l}, D \subseteq V} P.
+		\CheckAp{l,G}{V} &= G \cup \bigcup_{(P,D) \in dep_l(l), D \subseteq V} P.
 	\end{align*}
 	$l$ is locally safe if $\Vars{l}$ is the least fixed point of $\CheckOp{l,G}$
 	\section{Other Examples}
