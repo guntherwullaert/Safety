@@ -50,25 +50,30 @@
 	
 	An atom has form $p(\pool{t})$ where $p$ is a predicate symbol and $\pool{t}$ is a pool. 
 	\\
-	A literal is either an atom, atom preceded by not, comparison literal or comparison literal preceded by not.
-	\\
 	A comparison literal has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and $\prec$ is among the symbols $\leq,\ge,<,>$ or $\neq$.
 	\\
-	A conditional literal has form $\tuple{t} : \tuple{c}$, where $t$ and $c$ are tuples.
+	A conditional literal has form $l : \tuple{c}$, where $l$ is a literal and $c$ is a tuple of literals.
+	\\
+	A literal is either an
+	\begin{itemize}
+		\item atom,
+		\item comparison literal or
+		\item conditional literal,
+	\end{itemize}
+	which can be preceded by not.
 
 	\subsection{Aggregates}
-	An aggregate has one of the forms
+	An aggregate has the form
 	\begin{align}
-		&\alpha\{l_1; \dots; l_n\} \prec_1 s_1 \label{aggregate1} \\
-		s_1 \prec_1 \; &\alpha\{l_1; \dots; l_n\} \label{aggregate2} \\
-		s_1 \prec_1 \; &\alpha\{l_1; \dots; l_n\} \prec_2 s_2 \label{aggregate3}
+		&\alpha\{\tuple{t_1} : \tuple{L_1}; \dots; \tuple{t_n} : \tuple{L_n}\} \prec s \label{aggregate1}
 	\end{align}
 	$(n \leq 0)$, where
 	\begin{itemize}
 		\item $\alpha$ is an aggregate name,
-		\item each $l_i$ is a conditional literal,
-		\item each $\prec_1, \prec_2$ is among the symbols $\leq,\ge,<,>,=$ or $\neq$,
-		\item each $s_1, s_2$ is a term.
+		\item each $\tuple{t_i}$ is a tuple of terms,
+		\item each $\tuple{L_i}$ is a tuple of comparison literals and atoms,
+		\item each $\prec$ is among the symbols $\leq,\ge,<,>,=$ or $\neq$,
+		\item each $s$ is a term.
 	\end{itemize}
 
 	\subsection{Rules}
@@ -77,37 +82,28 @@
 	\begin{equation}
 		H_1 \lor ... \lor H_m  \leftarrow B_1 \land ... \land B_n \label{rule}
 	\end{equation}
-	($m, n \ge 0$), where each $H_i$ and $B_j$ are a literal.
-	$H_1 \lor ... \lor H_m$ is called the head. $B_1 \land ... \land B_n$ is called the body.
+	($m, n \ge 0$), where each $H_i$ is a literal and each $B_j$ is a literal or an aggregate.
+
+	\subsection{Choice Rules}
+	A choice rule of form
+	\begin{align}
+		&\alpha\{e_1, ..., e_m\}\beta :- B_1 \land ... \land B_n \label{choice}
+	\end{align}
+	($m, n \ge 0$), where each $e_i$ is an atom and each $B_j$ is a literal or an aggregate. $\alpha$ and $\beta$ can be omitted and do not affect safety.
 
 	\section{Safety}
-	We define operator~$\CheckOp{r}$ for a rule~$r$ applied to a set of variables~$V$ as
-	\begin{align*}
-	\CheckAp{r}{V} &= \bigcup_{(P,D) \in \DP{r}, D \subseteq V} P.
-	\end{align*}
-	A rule~$r$ is safe if $\Vars{r}$ is the least fixed point of $\CheckOp{r}$.
-	\paragraph{}
 	The $\mathit{vars(e)}$ function returns all variables for an expression $e$.
 	\\ For Example:
 	\begin{equation*}
 		vars(a(X) = b(Y)) = \set{X,Y}
 	\end{equation*}
-	\paragraph{}
-	The $\mathit{eval(c)}$ function takes a constant term and returns the arithmetical evaluation of that term. If this function for a $\mathit{constant}$ returns a value that is not zero a $\mathit{constant}$ is called $\mathit{nonzero}$.
+	The $\mathit{eval(c)}$ function takes a constant term and returns the arithmetic evaluation of that term. If this function for a $\mathit{constant}$ returns a set $s$, where $0 \notin s $ then this result is called $\mathit{nonzero}$.
 	\begin{align*}
-		\mathit{eval(c)} &= c \\
-		\mathit{eval(a + b)} &= (eval(a) + eval(b)) \\
-		\mathit{eval(a - b)} &= (eval(a) - eval(b)) \\
-		\mathit{eval(a \times b)} &= (eval(a) \times eval(b)) \\
-		\mathit{eval(a / b)} &= (eval(a) \div eval(b))
-	\end{align*}
-	\\ For Example:
-	\begin{align*}
-		eval(5 + 3 \times 2) &= (eval(5 + 3) \times eval(2)) \\
-		&= ((eval(5) + eval(3)) \times 2) \\
-		&= ((5 + 3) \times 2)
-		= (8 \times 2)
-		= 16
+		\mathit{eval}(c) &= \set{c} && \\
+		\mathit{eval}(a + b) &= \set{ x + y &|\;& x \in eval(a), y \in eval(b) } \\
+		\mathit{eval}(a - b) &= \set{ x - y &|\;& x \in eval(a), y \in eval(b) } \\
+		\mathit{eval}(a * b) &= \set{ x * y &|\;& x \in eval(a), y \in eval(b) } \\
+		\mathit{eval}(a / b) &= \set{ x / y &|\;& x \in eval(a), y \in eval(b), y \neq 0 }
 	\end{align*}
 
 	\subsection{Terms}
@@ -147,21 +143,25 @@
 	\end{align*}
 	%%
 	\subsubsection{Arithmetics}
-	For a term of form $t \times c$, where $t$ is a term and $c$ a constant and $\mathit{eval}(c) = 0$
-	\begin{align*}
-		pt(t \times c) &= \emptyset \\
-		dt(t \times c) &= \emptyset
-	\end{align*}
-	For a term of form $a \star b$, where $a,b$ are terms and one of them is a $\mathit{constant}$ and the $\mathit{constant}$ is $\mathit{nonzero}$ and $\star$ is among the symbols +, - or $\times$ or $a$ and $b$ are both $\mathit{constant}$ and $\star$ is among the symbols +, -, $\times$, / or ..
+	For a term of form $a \star b$, where $a,b$ are terms and one of them is a $\mathit{constant}$ and $\star$ is among the symbols +, - or $a$ and $b$ are both $\mathit{constant}$ and $\star$ is among the symbols +, -, / or ..
 	\begin{align*}
 		pt(a \star b) &= pt(a) \cup pt(b) \\
 		dt(a \star b) &= dt(a) \cup dt(b)
 	\end{align*}
-	%%
-	Otherwise for a term of form $a \star b$
+	Otherwise for a term of form $a \star b$, where $a,b$ are terms and none of them are $\mathit{constant}$ and $\star$ is among the symbols +, -, $\times$, / or ..
 	\begin{align*}
 		pt(a \star b) &= \emptyset \\
 		pt(a \star b) &= vars(a \star b)
+	\end{align*}
+	For a term of form $a \times b$, where $a,b$ are terms and one of them is a $\mathit{constant}$ and $0 \in \mathit{eval}(a)$ or $0 \in \mathit{eval}(b)$
+	\begin{align*}
+		pt(a \times b) &= \emptyset \\
+		dt(a \times b) &= \emptyset
+	\end{align*}
+	Otherwise if $0 \notin eval(a) \cup eval(b)$
+	\begin{align*}
+		pt(a \times b) &= pt(a) \cup pt(b) \\
+		dt(a \times b) &= dt(a) \cup dt(b)
 	\end{align*}
 	%%
 	For a term of form $-t$, where $t$ is a term
@@ -201,20 +201,33 @@
 	\end{align*}
 
 	\subsubsection{Conditional Literals}
-	For an literal of form $\tuple{t} : \tuple{c}$, where $t$ and $c$ are tuples
+	For a conditional literal of form $\tuple{t} : \tuple{c}$, where $t$ is a tuple of terms and $c$ is a tuple of comparison literals and atoms, where $G$ is the set of variables occuring globally in it.
 	\begin{align*}
-		dep(\tuple{t} : \tuple{c}) &= \emptyset
+		dep(\tuple{t} : \tuple{c}) &= \set{(\emptyset, G \cup vars(s))}
+	\end{align*}
+	For an conditional literal of form $\tuple{t} : \tuple{c}$, where $t$ is a tuple of terms and $c$ is a tuple of comparison literals and atoms
+	\begin{align*}
+		dep(\tuple{t} : \tuple{c}) = \set{(\emptyset, vars(\tuple{t}))} \cup \bigcup_{e \in \tuple{c}} dep(e)
 	\end{align*}
 
 	\subsection{Aggregates}
-	For an aggregate $a$ of form (\ref{aggregate1}) or (\ref{aggregate2}), where $\prec_1$ is $=$
+	For a aggragate~$a$ occuring in a rule, where $G$ is the set of variables occuring globally in it.
+	We define $elem(a)$ to return a set of elements in $a$ as
 	\begin{align*}
-		dep(a) &= \set{(vars(s_1), \emptyset)}
+		elem(a) = \set{\tuple{t_1} : \tuple{L_1}, \dots , \tuple{t_n} : \tuple{L_n}}
 	\end{align*}
-	Otherwise and for an aggregate $a$ of form (\ref{aggregate3})
-	\begin{equation*}
-		dep(a) = \emptyset
-	\end{equation*}
+	For an aggregate element of form $\tuple{t_1} : \tuple{L_1}$, where $t_1$ is a tuple of terms and $\tuple{L_1}$ is a tuple of comparison literals and atoms
+	\begin{align*}
+		dep(\tuple{t_1} : \tuple{L_1}) = \set{(\emptyset, vars(\tuple{t_1}))} \cup \bigcup_{l \in \tuple{L_1}} dep(l)
+	\end{align*}
+	For an aggregate~$a$, where $\prec$ is $=$
+	\begin{align*}
+		dep(a) = \set{(pt(s), G), (\emptyset, dt(s) \cup G)}
+	\end{align*}
+	Otherwise
+	\begin{align*}
+		dep(a) = \set{(\emptyset, G \cup vars(s))}
+	\end{align*}
 
 	\subsection{Rule}
 	For a rule $r$ in the form of (\ref{rule}) the following holds:
@@ -222,6 +235,30 @@
 		dep(r) &= \set{(\emptyset, vars(H_1\vee ... \vee H_k))} \cup dep(B_1) \cup ... \cup dep(B_m)
 	\end{align*}
 
+	\subsection{Choice Rule}
+	For a choice rule $r$ in the form of (\ref{choice}) the following holds:
+	\begin{align*}
+		dep(r) &= \set{(\emptyset, vars(e_1\vee ... \vee e_k))} \cup dep(B_1) \cup ... \cup dep(B_m)
+	\end{align*}
+
+	\subsection{Safety Definition}
+	We define operator~$\CheckOp{r}$ for a rule~$r$ applied to a set of variables~$V$ as
+	\begin{align*}
+	\CheckAp{r}{V} &= \bigcup_{(P,D) \in \DP{r}, D \subseteq V} P.
+	\end{align*}
+	A rule~$r$ is globally safe if $\Vars{r}$ is the least fixed point of $\CheckOp{r}$ and each aggregate and conditional literal is locally safe.
+	\\
+	We define operator~$\CheckOp{e,G}$ for an element~$e$ of an aggregate~$a$ applied to a set of variables~$V$ as
+	\begin{align*}
+		\CheckAp{e,G}{V} &= G \cup \bigcup_{(P,D) \in \DP{e}, D \subseteq V} P.
+	\end{align*}
+	$a$ is locally safe if for each element $e \in elem(a)$, $\Vars{e}$ is the least fixed point of $\CheckOp{e,G}$
+	\\
+	We define operator~$\CheckOp{l,G}$ for an conditional literal~$l$ applied to a set of variables~$V$ as
+	\begin{align*}
+		\CheckAp{l,G}{V} &= G \cup \bigcup_{(P,D) \in \DP{l}, D \subseteq V} P.
+	\end{align*}
+	$l$ is locally safe if $\Vars{l}$ is the least fixed point of $\CheckOp{l,G}$
 	\section{Other Examples}
 	\begin{align*}
 		dep(p(X,Y+Y)) &= \dep{pt(X,Y+Y), \emptyset}{\emptyset, dt(X,Y+Y)}
