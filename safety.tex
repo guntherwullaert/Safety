@@ -18,35 +18,41 @@
 
 \newcommand\Vars{\mathit{vars}}
 \newcommand\Eval{\mathit{eval}}
+\newcommand\Negate{\mathit{negate}}
 \newcommand\Provide{\mathit{pt}}
 \newcommand\Depend{\mathit{dt}}
-\newcommand\DP[1]{\mathit{dep}(#1)}
+\newcommand\ProDep{\mathit{dep}}
+\newcommand\PD{\mathit{P\!D}}
 \newcommand\CheckOp[1]{C_{#1}}
-\newcommand\CheckAp[2]{\CheckOp{#1}({#2})}
 
 \begin{document}
 	\maketitle
 
 	\section{Language}
+	We define our language over four sets of symbols:
+	numerals, symbolic constants, variables, and aggregate names.
+
+
 	\subsection{Term and Pools}
 
 	We inductively define \emph{terms}, \emph{tuples of terms}, and \emph{pools}:
 	\begin{itemize}
-		\item all numerals, symbolic constants, and variables are terms,\comment{{R}: Define those things.}
-		\item $f(\pool{t})$ is a term, if $f$ is a symbolic constant and $\pool{t}$ is a pool,
-		\item $t_1 \star t_2$ is a term, if $t_1$, $t_2$ are terms and ${\star} \in \set{{+}, {-}, {\times}, {\div}, {..}}$,
-		\item $\langle \pool{t} \rangle$ is a term, if $\pool{t}$ is a pool,
-		\item $t_1,\dots,t_n$ is a tuple of terms, if $n \ge 0$ and $t_i$ is a term,
-		\item $\tuple{t_1};\dots;\tuple{t_n}$ is a pool, if $n \ge 1$ and each $\tuple{t_i}$ is a tuple of terms.\comment{{R}: Why not empty?}
+		\item all numerals and variables are terms,
+		\item $f(\pool{t})$ is a term if $f$ is a symbolic constant and $\pool{t}$ is a pool,
+		\item $t_1 \star t_2$ is a term if $t_1$, $t_2$ are terms and ${\star} \in \set{{+}, {-}, {\times}, {\div}, {..}}$,
+		\item $\langle \pool{t} \rangle$ is a term if $\pool{t}$ is a pool,
+		\item $t_1,\dots,t_n$ is a tuple of terms if $n \ge 0$ and $t_i$ is a term,
+		\item $\tuple{t_1};\dots;\tuple{t_n}$ is a pool if $n \ge 1$ and each $\tuple{t_i}$ is a tuple of terms.
 	\end{itemize}
+	We omit writing the parenthesis for terms of form~\(f()\).
 
 	We inductively define a term to be $\emph{evaluable}$ if
 	\begin{itemize}
 		\item it is a numeral, or
 		\item it has form $t_1 \star t_2$ where $t_1$ and $t_2$ are evaluable and $\star \in \set{{+}, {-}, {\times}, {\div}}$.
 	\end{itemize}
-
-	We inductively define function $\Eval$ to map evaluable terms to sets of numerals:
+	%
+	We then inductively define function $\Eval$ mapping evaluable terms to sets of numerals:
 	\begin{itemize}
 	\item for numerals~\(t\), we let $\Eval(t) = \{t\}$, and
 	\item for terms of form $t_1 \star t_2$, we let
@@ -57,13 +63,21 @@
 		\Eval(t_1 \div t_2) &= \{ s_1 \div s_2 &&\mid s_1 \in \Eval(t_1), s_2 \in \Eval(t_2), s_2 \neq 0 \}.
 	\end{alignat*}
 	\end{itemize}
-	We say that a term $c$ is \emph{nonzero} if it is evaluable and $0 \notin \Eval(c)$.
+	We say that a term~$t$ is \emph{nonzero} if it is evaluable and $0 \notin \Eval(t)$.
 
 	\subsection{Atoms and Literals}
 
-	An \emph{atom} has form $p(\pool{t})$ where $p$ is a predicate symbol and $\pool{t}$ is a pool.\comment{{R}: Define predicate symbols.}
+	An \emph{atom} has form $p(\pool{t})$ where $p$ is a symbolic constant and $\pool{t}$ is a pool.
+	We omit writing parenthesis for atoms of form~\(p()\).
 
-	A \emph{comparison} has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and $\prec$ is among the symbols $\leq$, $\ge$, $<$, $>$ or $\neq$.
+	A \emph{comparison} has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and ${\prec} \in \set{{<}, {>}, {\leq}, {\geq}, {=}, {\neq}}$.
+	Furthermore, we let $\Negate$ be a function for negate relation symbols:
+	${<} \mapsto {\geq}$,
+	${>} \mapsto {\leq}$,
+	${\leq} \mapsto {>}$,
+	${\geq} \mapsto {<}$,
+	${=} \mapsto {\neq}$ and
+	${\neq} \mapsto {=}$.
 
 	A \emph{literal} is either an atom or a comparison optionally preceded by the \emph{default negation} symbol $\neg$.
 
@@ -79,8 +93,8 @@
 		\item $n \geq 0$,
 		\item $\alpha$ is an aggregate name,
 		\item each $\tuple{t_i}$ is a tuple of terms,
-		\item each $\tuple{l_i}$ is a tuple of literals,
-		\item $\prec$ is among the symbols $\leq$, $\ge$, $<$, $>$, $=$ or $\neq$, and
+		\item each $\tuple{l_i}$ is a (possible empty) tuple of literals,
+		\item ${\prec} \in \set{{<}, {>}, {\leq}, {\geq}, {=}, {\neq}}$, and
 		\item $s$ is a term.
 	\end{itemize}
 
@@ -90,7 +104,7 @@
 	\begin{align}
 		a_1 \vee \dots \vee a_m &\leftarrow l_1 \wedge \dots \wedge l_n \label{rule}
 	\end{align}
-	where $m, n \ge 0$, each $a_i$ is a literal and each $l_i$ is a literal, conditional literal or aggregate.
+	where $m, n \ge 0$, each~$a_i$ is an atom and each~$l_i$ is a literal, conditional literal or aggregate.
 
 	A \emph{choice rule} has form
 	\begin{align}
@@ -98,16 +112,16 @@
 	\end{align}
 	where
 	$m, n \geq 0$,
-	each $e_i$ is an atom and
-	each $l_i$ is a literal, conditional literal or aggregate.
+	each~$a_i$ is an atom and
+	each~$l_i$ is a literal, conditional literal or aggregate.
 
-	We refer to the atoms~$a_i$ and literals~$l_i$ in rules of form~\eqref{rule} and~\eqref{choice} as \emph{head atoms} and \emph{body literals}, respectively.
+	We refer to the $a_i$ and $l_i$ in rules of form~\eqref{rule} and~\eqref{choice} as \emph{head atoms} and \emph{body literals}, respectively.
 
 	\section{Safety}
 
 	In the following, we use function $\Vars(e)$ to obtain all variables occurring in an expression $e$.
   %
-	We say that a variable $X$ occurs \emph{globally} in
+	Furthermore, we say that a variable $X$ occurs \emph{globally} in
 	\begin{itemize}
 		\item a literal~$l$ if $X \in \Vars(l)$,
 		\item a conditional literal~$l : \tuple{l}$ if $X \in \Vars(l) \setminus \Vars(\tuple{l})$,
@@ -117,11 +131,11 @@
 
 	\subsection{Terms}
 
-	We inductively define function~$\Provide$ for terms, tuples of terms, and pools:
+	We inductively define function~$\Provide$ for terms, tuples of terms and pools:
 	\begin{itemize}
 		\item
-			for numerals~$n$ and symbolic constants~$f$, we let
-			$\Provide(n) = \Provide(f) = \emptyset$,
+			for numerals~$n$, we let
+			$\Provide(n) = \emptyset$,
 		\item
 			for variables~$X$, we let
 			$\Provide(X) = \set{X}$,
@@ -148,95 +162,60 @@
 	\end{itemize}
 	We define function~$\Depend$ for terms~$t$ as $\Depend(t) = \Vars(t) \setminus \Provide(t)$.
 
-	\subsection{Atoms and Literals}
-	\subsubsection{Atoms and Literals}
-	For an literal of form $not \; a$, where $a$ is an atom
-	\begin{equation*}
-		dep(not \; a) = \set{(\emptyset, vars(a))}
-	\end{equation*}
-	For an atom of form $p(\pool{t})$, where $\pool{t}$ is a pool
-	\begin{equation*}
-		dep(p(\pool{t})) = \dep{\Provide(\pool{t}), \emptyset}{\emptyset, \Depend(\pool{t})}
-	\end{equation*}
+	\subsection{Body Literals and Rules}
+	Next, we define function~$\ProDep$ for body literals and rules:
+	\begin{itemize}
+		\item 
+			for an atom~$a$ of form~$p(\pool{t})$, we let
+			$\ProDep(a) = \set{(\Provide(\pool{t}), \emptyset), (\emptyset, \Depend(\pool{t}))}$,
+		\item
+			for a comparison~$a$ of form $t_1 \prec t_2$ with ${\prec} \notin \set{{=}}$, we let
+			$\ProDep(a) = \set{(\emptyset, \Vars(a))}$,
+		\item
+			for a comparison~$a$ of form $t_1 = t_2$, we let
+			$\ProDep(a) = \set{(\Provide(t_1), \Vars(t_2)), (\Provide(t_2), \Vars(t_1)), (\emptyset, \Depend(t_1) \cup \Depend(t_2))}$,
+		\item 
+			for a literal $l$ of form $\neg a$ where $a$ is an atom, we let
+			$\ProDep(l) = \set{(\emptyset, \Vars(l))}$,
+		\item 
+			for a literal $l$ of form $\neg t_1 \prec t_2$, we let
+			$\ProDep(l) = \ProDep(t_1 \mathrel{\Negate({\prec})} t_2)$,
+		\item
+			for conditional literal $l$, we let
+			$\ProDep(l) = \set{(\emptyset, \Vars(l))}$,
+		\item
+			for an aggregate~$l$ of form~\eqref{aggregate} with ${\prec} \notin \set{{=}}$, we let
+			$\ProDep(l) = \set{(\emptyset, \Vars(l))}$,
+		\item
+			for an aggregate~$l$ of form~\eqref{aggregate} with ${\prec} \in \set{{=}}$, we let
+			$\ProDep(l) = \set{(\Provide(s), \Vars(\tuple{t_1} : \tuple{l_1}; \dots; \tuple{t_n} : \tuple{l_n})), (\emptyset,\Depend(s))}$,
+		\item
+			for a rule $r$ of form~\eqref{rule} or~\eqref{choice}, we let
+			\begin{align*}
+				\ProDep(r) &= \bigcup_{0 \leq i \leq m} \set{(\emptyset, \Vars(a_i))} \cup \bigcup_{0 \leq i \leq n} \ProDep(l_i).
+			\end{align*}
+	\end{itemize}
+	Furthermore, we let $\ProDep_{|X}(l) = \set{(D \cap X, P \cap X) \mid (D, P) \in \ProDep(l)}$
+	to restrict variables in the dependency to the given set $X$ of variables.
 
-	\subsubsection{Comparison Literals}
-	For an comparison literal of form $a \prec b$, where $a$ and $b$ are terms and $\prec$ is among the symbols $\leq,\ge,<,>,\neq$
-	\begin{equation*}
-		dep(a \prec b) = \set{(\emptyset, vars(a \prec b))}
-	\end{equation*}
-	For an comparison literal of form $a = b$, where $a$ and $b$ are terms
-	\begin{equation*}
-		dep(a = b) = \set{(\Provide(a), vars(b)), (\Provide(b), vars(a)), (\emptyset, \Depend(a) \cup \Depend(b))}
-	\end{equation*}
-	For an literal of form $not \; a \prec b$, where $a$ and $b$ are terms
-	\begin{align*}
-		dep(not \; a = b) &= dep(a \neq b) \\
-		dep(not \; a \neq b) &= dep(a = b) \\
-		dep(not \; a \leq b) &= dep(a > b) \\
-		dep(not \; a > b) &= dep(a \leq b) \\
-		dep(not \; a \ge b) &= dep(a < b) \\
-		dep(not \; a < b) &= dep(a \ge b)
-	\end{align*}
-
-	\subsubsection{Conditional Literals}
-	For a conditional literal of form $\tuple{t} : \tuple{c}$, where $t$ is a tuple of terms and $c$ is a tuple of comparison literals and atoms, where $G$ is the set of variables occuring globally in it.
-	\begin{align*}
-		dep(\tuple{t} : \tuple{c}) &= \set{(\emptyset, G \cup vars(s))}
-	\end{align*}
-	For an conditional literal of form $\tuple{t} : \tuple{c}$, where $t$ is a tuple of terms and $c$ is a tuple of comparison literals and atoms in a local context
-	\begin{align*}
-		dep_l(\tuple{t} : \tuple{c}) = \set{(\emptyset, vars(\tuple{t}))} \cup \bigcup_{e \in \tuple{c}} dep(e)
-	\end{align*}
-
-	\subsection{Aggregates}
-	For a aggragate~$a$ occuring in a rule, where $G$ is the set of variables occuring globally in it.
-	We define $elem(a)$ to return a set of elements in $a$ as
-	\begin{align*}
-		elem(a) = \set{\tuple{t_1} : \tuple{L_1}, \dots , \tuple{t_n} : \tuple{L_n}}
-	\end{align*}
-	For an aggregate element of form $\tuple{t_1} : \tuple{L_1}$, where $t_1$ is a tuple of terms and $\tuple{L_1}$ is a tuple of comparison literals and atoms
-	\begin{align*}
-		dep(\tuple{t_1} : \tuple{L_1}) = \set{(\emptyset, vars(\tuple{t_1}))} \cup \bigcup_{l \in \tuple{L_1}} dep(l)
-	\end{align*}
-	For an aggregate~$a$, where $\prec$ is $=$
-	\begin{align*}
-		dep(a) = \set{(\Provide(s), G), (\emptyset, \Depend(s) \cup G)}
-	\end{align*}
-	Otherwise
-	\begin{align*}
-		dep(a) = \set{(\emptyset, G \cup vars(s))}
-	\end{align*}
-
-	\subsection{Rule}
-	For a rule $r$ in the form of (\ref{rule}) the following holds:
-	\begin{align*}
-		dep(r) &= \set{(\emptyset, vars(H_1\vee ... \vee H_k))} \cup dep(B_1) \cup ... \cup dep(B_m)
-	\end{align*}
-
-	\subsection{Choice Rule}
-	For a choice rule $r$ in the form of \eqref{choice} the following holds:
-	\begin{align*}
-		dep(r) &= \set{(\emptyset, vars(e_1\vee ... \vee e_k))} \cup dep(B_1) \cup ... \cup dep(B_m)
-	\end{align*}
 
 	\subsection{Safety Definition}
-	We define operator~$\CheckOp{r}$ for a rule~$r$ applied to a set of variables~$V$ as
+	We define operator~$\CheckOp{\PD}$ parametrized with a set~$\PD$ of pairs of sets of variables
+	applied to a set~$V$ of variables as
 	\begin{align*}
-	\CheckAp{r}{V} &= \bigcup_{(P,D) \in \DP{r}, D \subseteq V} P.
+	\CheckOp{\PD}(V) &= \bigcup_{(P,D) \in \PD, D \subseteq V} P.
 	\end{align*}
-	A rule~$r$ is globally safe if $\Vars(r)$ is the least fixed point of $\CheckOp{r}$ and each aggregate and conditional literal is locally safe.
-	\\
-	We define operator~$\CheckOp{e,G}$ for an element~$e$ of an aggregate~$a$ applied to a set of variables~$V$ as
-	\begin{align*}
-		\CheckAp{e,G}{V} &= G \cup \bigcup_{(P,D) \in \DP{e}, D \subseteq V} P.
-	\end{align*}
-	$a$ is locally safe if for each element $e \in elem(a)$, $\Vars(e)$ is the least fixed point of $\CheckOp{e,G}$
-	\\
-	We define operator~$\CheckOp{l,G}$ for an conditional literal~$l$ applied to a set of variables~$V$ as
-	\begin{align*}
-		\CheckAp{l,G}{V} &= G \cup \bigcup_{(P,D) \in dep_l(l), D \subseteq V} P.
-	\end{align*}
-	$l$ is locally safe if $\Vars(l)$ is the least fixed point of $\CheckOp{l,G}$
+
+	We say that a rule~$r$ is \emph{globally safe} if the set $G$ of all variables occurring globally in $r$ is the least fixed point of $\CheckOp{\PD}$ with $\PD=\ProDep_{|G}(r)$.
+
+	We say that conditional literal $l$ of form~$l_0 : l_1, \dots, l_n$ occurring in a rule~$r$ with global variables $G$ is \emph{locally safe} if
+$L = \Vars(l) \setminus G$ is the least fixed point of $\CheckOp{\PD}$ with $\PD=\set{(\emptyset, \Vars(l_0) \cap L)} \cup \bigcup_{1 \leq i \leq n} \ProDep_{|L}(l_i)$.
+
+	Similarly, an aggregate element $e$ of form $\tuple{t}: l_1, \dots, l_n$ occurring in a rule~$r$ with global variables $G$ is \emph{locally safe} if
+$L = \Vars(e) \setminus G$ is the least fixed point of $\CheckOp{\PD}$ with $\PD=\set{(\emptyset, \Vars(\tuple{t}) \cap L)} \cup \bigcup_{1 \leq i \leq n} \ProDep_{|L}(l_i)$.
+
+A rule is \emph{safe} if it is globally safe and all occurrences of conditional literals and aggregate elements in it are locally safe.
+
 	\section{Other Examples}
 	\begin{align*}
 		dep(p(X,Y+Y)) &= \dep{\Provide(X,Y+Y), \emptyset}{\emptyset, \Depend(X,Y+Y)}
