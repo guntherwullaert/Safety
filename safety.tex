@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{amsmath}
 \usepackage{comments}
+\usepackage{hyperref}
 
 \title{Definition of Safety}
 \author{Günther Wullaert}
@@ -22,6 +23,7 @@
 \newcommand\Provide{\mathit{pt}}
 \newcommand\Depend{\mathit{dt}}
 \newcommand\ProDep{\mathit{dep}}
+\newcommand\Analyze{\mathit{analyze}}
 \newcommand\PD{\mathit{P\!D}}
 \newcommand\CheckOp[1]{C_{#1}}
 
@@ -71,7 +73,7 @@
 	We omit writing parenthesis for atoms of form~\(p()\).
 
 	A \emph{comparison} has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and ${\prec} \in \set{{<}, {>}, {\leq}, {\geq}, {=}, {\neq}}$.
-	Furthermore, we let $\Negate$ be a function for negate relation symbols:
+	Furthermore, we let $\Negate$ be a function to negate relation symbols:
 	${<} \mapsto {\geq}$,
 	${>} \mapsto {\leq}$,
 	${\leq} \mapsto {>}$,
@@ -188,15 +190,32 @@
 			$\ProDep(l) = \set{(\emptyset, \Vars(l))}$,
 		\item
 			for an aggregate~$l$ of form~\eqref{aggregate} with ${\prec} \in \set{{=}}$, we let
-			$\ProDep(l) = \set{(\Provide(s), \Vars(\tuple{t_1} : \tuple{l_1}; \dots; \tuple{t_n} : \tuple{l_n})), (\emptyset,\Depend(s))}$,
-		\item
-			for a rule $r$ of form~\eqref{rule} or~\eqref{choice}, we let
-			\begin{align*}
-				\ProDep(r) &= \bigcup_{0 \leq i \leq m} \set{(\emptyset, \Vars(a_i))} \cup \bigcup_{0 \leq i \leq n} \ProDep(l_i).
-			\end{align*}
+			$\ProDep(l) = \set{(\Provide(s), \Vars(\tuple{t_1} : \tuple{l_1}; \dots; \tuple{t_n} : \tuple{l_n})), (\emptyset,\Depend(s))}$.
 	\end{itemize}
 	Furthermore, we let $\ProDep_{|X}(l) = \set{(D \cap X, P \cap X) \mid (D, P) \in \ProDep(l)}$
 	to restrict variables in the dependency to the given set $X$ of variables.
+
+
+\subsection{Gathering Dependencies}
+	Next, we define function~$\Analyze$ to gather dependencies in rules, conditional literals, and aggregate elements:
+	\begin{itemize}
+		\item
+			for a rule $r$ of form~\eqref{rule} or~\eqref{choice}, we let
+			\begin{align*}
+				\Analyze(r) &= \bigcup_{0 \leq i \leq m} \set{(\emptyset, \Vars(a_i))} \cup \bigcup_{0 \leq i \leq n} \ProDep(l_i),
+			\end{align*}
+		\item
+			for a conditional literal $l$ of form~$l_0 : l_1, \dots, l_n$, we let
+			\begin{align*}
+				\Analyze(l) &= \set{(\emptyset, \Vars(l_0))} \cup \bigcup_{1 \leq i \leq n} \ProDep(l_i),
+			\end{align*}
+		\item
+			for an aggregate element $e$ of form~$\tuple{t}: l_1, \dots, l_n$, we let
+			\begin{align*}
+				\Analyze(e) &= \set{(\emptyset, \Vars(\tuple{t}))} \cup \bigcup_{1 \leq i \leq n} \ProDep(l_i).
+			\end{align*}
+	\end{itemize}
+	Given a set~$\PD$ of pairs of sets of variables and a set of variables $V$, we let $\PD_{|V} = \set{(P \cap V, D \cap V) \mid (P, D) \in \PD}$.
 
 
 	\subsection{Safety Definition}
@@ -206,15 +225,13 @@
 	\CheckOp{\PD}(V) &= \bigcup_{(P,D) \in \PD, D \subseteq V} P.
 	\end{align*}
 
-	We say that a rule~$r$ is \emph{globally safe} if the set $G$ of all variables occurring globally in $r$ is the least fixed point of $\CheckOp{\PD}$ with $\PD=\ProDep_{|G}(r)$.
+	Let $r$ be a rule with global variables $G$.
+	We say that a rule~$r$ is \emph{globally safe}
+	if $G$ is the least fixed point of $\CheckOp{\PD_{|G}}$ with $\PD=\Analyze(r)$.
+	Furthermore, we say that a conditional literal or aggregate element $e$ occurring in rule~$r$ is \emph{locally safe}
+	if $L = \Vars(e) \setminus G$ is the least fixed point of $\CheckOp{\PD_{|L}}$ with $\PD=\Analyze(e)$.
 
-	We say that conditional literal $l$ of form~$l_0 : l_1, \dots, l_n$ occurring in a rule~$r$ with global variables $G$ is \emph{locally safe} if
-$L = \Vars(l) \setminus G$ is the least fixed point of $\CheckOp{\PD}$ with $\PD=\set{(\emptyset, \Vars(l_0) \cap L)} \cup \bigcup_{1 \leq i \leq n} \ProDep_{|L}(l_i)$.
-
-	Similarly, an aggregate element $e$ of form $\tuple{t}: l_1, \dots, l_n$ occurring in a rule~$r$ with global variables $G$ is \emph{locally safe} if
-$L = \Vars(e) \setminus G$ is the least fixed point of $\CheckOp{\PD}$ with $\PD=\set{(\emptyset, \Vars(\tuple{t}) \cap L)} \cup \bigcup_{1 \leq i \leq n} \ProDep_{|L}(l_i)$.
-
-A rule is \emph{safe} if it is globally safe and all occurrences of conditional literals and aggregate elements in it are locally safe.
+	A rule is \emph{safe} if it is globally safe and all occurrences of conditional literals and aggregate elements in it are locally safe.
 
 	\section{Other Examples}
 	\begin{align*}
