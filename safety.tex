@@ -1,7 +1,6 @@
 \documentclass{article}
-%\usepackage{bm}
-%\usepackage{breqn}
 \usepackage{amsmath}
+\usepackage{comments}
 
 \title{Definition of Safety}
 \author{Günther Wullaert}
@@ -24,72 +23,77 @@
 
 \begin{document}
 	\maketitle
-	
+
 	\section{Language}
 	\subsection{Term and Pools}
-	
-	We inductively define terms, tuples of terms, and pools as
+
+	We inductively define \emph{terms}, \emph{tuples of terms}, and \emph{pools}:
 	\begin{itemize}
-		\item all numerals, symbolic constants, and variables are terms,
+		\item all numerals, symbolic constants, and variables are terms,\comment{{R}: Define those things.}
 		\item $f(\pool{t})$ is a term, if $f$ is a symbolic constant and $\pool{t}$ is a pool,
-		\item $t_1 \star t_2$ is a term, if $\star$ is among the symbols +, -, $\times$, / or .. and $t_1$, $t_2$ are terms,
-		\item $\langle \pool{t} \rangle$ is a term, if $\pool{t}$ is a pool, which can have a possibly empty set of terms,
-		\item $t_1,...,t_n$ is a tuple of terms, if $n \ge 0$ and $t_i$ is a term,
-  		\item $\tuple{t_1};...;\tuple{t_n}$ is a pool, if $n \ge 1$ and each $\tuple{t_i}$ is a tuple of terms.
+		\item $t_1 \star t_2$ is a term, if $\star$ is among the symbols $+$, $-$, $\times$, $/$ or $..$ and $t_1$, $t_2$ are terms,
+		\item $\langle \pool{t} \rangle$ is a term, if $\pool{t}$ is a pool,
+		\item $t_1,\dots,t_n$ is a tuple of terms, if $n \ge 0$ and $t_i$ is a term,
+		\item $\tuple{t_1};\dots;\tuple{t_n}$ is a pool, if $n \ge 1$ and each $\tuple{t_i}$ is a tuple of terms.\comment{{R}: Why not empty?}
 	\end{itemize}
 
-	\subsection{Constants}
-
-	We inductively define a term to be $\mathit{constant}$ if
+	We inductively define a term to be $\emph{numeric}$ if
 	\begin{itemize}
-		\item it is a numeral,
-		\item it has form $t \star u$ where t and u are $\mathit{constant}$ and $\star$ is among the symbols +, -, $\times$ or /.
+		\item it is a numeral, or
+		\item it has form $t \star u$ where $t$ and $u$ are constant and $\star$ is among the symbols $+$, $-$, $\times$ or $/$.
 	\end{itemize}
+
+	We define function $\mathit{eval}$ to evaluate numeric terms to sets of numerals:
+	\begin{alignat*}{4}
+		\mathit{eval}(c) &= \{c\} & \\
+		\mathit{eval}(a + b) &= \{ x + y &&\mid x \in eval(a), y \in eval(b) \} \\
+		\mathit{eval}(a - b) &= \{ x - y &&\mid x \in eval(a), y \in eval(b) \} \\
+		\mathit{eval}(a * b) &= \{ x * y &&\mid x \in eval(a), y \in eval(b) \} \\
+		\mathit{eval}(a / b) &= \{ x / y &&\mid x \in eval(a), y \in eval(b), y \neq 0 \}
+	\end{alignat*}
+	We say that a numeric term $c$ is \emph{nonzero} if $0 \notin \mathit{eval}(c)$.
 
 	\subsection{Atoms and Literals}
-	
-	An atom has form $p(\pool{t})$ where $p$ is a predicate symbol and $\pool{t}$ is a pool. 
-	\\
-	A comparison literal has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and $\prec$ is among the symbols $\leq,\ge,<,>$ or $\neq$.
-	\\
-	A conditional literal has form $l : \tuple{c}$, where $l$ is a literal and $c$ is a tuple of literals.
-	\\
-	A literal is either an
-	\begin{itemize}
-		\item atom,
-		\item comparison literal or
-		\item conditional literal,
-	\end{itemize}
-	which can be preceded by not.
+
+	An \emph{atom} has form $p(\pool{t})$ where $p$ is a predicate symbol and $\pool{t}$ is a pool.\comment{{R}: Define predicate symbols.}
+
+	A \emph{comparison} has form $t_1 \prec t_2$, where $t_1,t_2$ are terms and $\prec$ is among the symbols $\leq$, $\ge$, $<$, $>$ or $\neq$.
+
+	A \emph{literal} is either an atom or a comparison optionally preceded by the \emph{default negation} symbol $\neg$.
+
+	A \emph{conditional literal} has form $l : \tuple{l}$, where $l$ is a literal and $\tuple{l}$ is a (possibly empty) tuple of literals.
 
 	\subsection{Aggregates}
-	An aggregate has the form
+	An \emph{aggregate} has the form
 	\begin{align}
-		&\alpha\{\tuple{t_1} : \tuple{L_1}; \dots; \tuple{t_n} : \tuple{L_n}\} \prec s \label{aggregate1}
+		&\alpha\{\tuple{t_1} : \tuple{l_1}; \dots; \tuple{t_n} : \tuple{l_n}\} \prec s \label{aggregate1}
 	\end{align}
-	$(n \leq 0)$, where
+	where
 	\begin{itemize}
+		\item $n \geq 0$,
 		\item $\alpha$ is an aggregate name,
 		\item each $\tuple{t_i}$ is a tuple of terms,
-		\item each $\tuple{L_i}$ is a tuple of comparison literals and atoms,
-		\item each $\prec$ is among the symbols $\leq,\ge,<,>,=$ or $\neq$,
-		\item each $s$ is a term.
+		\item each $\tuple{l_i}$ is a tuple of literals,
+		\item $\prec$ is among the symbols $\leq$, $\ge$, $<$, $>$, $=$ or $\neq$, and
+		\item $s$ is a term.
 	\end{itemize}
 
 	\subsection{Rules}
 
-	A rule $r$ has the form
-	\begin{equation}
-		H_1 \lor ... \lor H_m  \leftarrow B_1 \land ... \land B_n \label{rule}
-	\end{equation}
-	($m, n \ge 0$), where each $H_i$ is a literal and each $B_j$ is a literal or an aggregate.
-
-	\subsection{Choice Rules}
-	A choice rule of form
+	A \emph{rule} has form
 	\begin{align}
-		&\alpha\{e_1, ..., e_m\}\beta :- B_1 \land ... \land B_n \label{choice}
+		a_1 \vee \dots \vee a_m &\leftarrow l_1 \wedge \dots \wedge l_n \label{rule}
 	\end{align}
-	($m, n \ge 0$), where each $e_i$ is an atom and each $B_j$ is a literal or an aggregate. $\alpha$ and $\beta$ can be omitted and do not affect safety.
+	where $m, n \ge 0$, each $a_i$ is a literal and each $l_i$ is a literal, conditional literal or aggregate.
+
+	A \emph{choice rule} has form
+	\begin{align}
+		\{a_1; \dots; a_m\} &\leftarrow l_1 \wedge \dots \wedge l_n \label{choice}
+	\end{align}
+	where
+	$m, n \geq 0$,
+	each $e_i$ is an atom and
+	each $l_i$ is a literal, conditional literal or aggregate.
 
 	\section{Safety}
 	The $\mathit{vars(e)}$ function returns all variables for an expression $e$.
@@ -97,14 +101,6 @@
 	\begin{equation*}
 		vars(a(X) = b(Y)) = \set{X,Y}
 	\end{equation*}
-	The $\mathit{eval(c)}$ function takes a constant term and returns the arithmetic evaluation of that term. If this function for a $\mathit{constant}$ returns a set $s$, where $0 \notin s $ then this result is called $\mathit{nonzero}$.
-	\begin{align*}
-		\mathit{eval}(c) &= \set{c} && \\
-		\mathit{eval}(a + b) &= \set{ x + y &|\;& x \in eval(a), y \in eval(b) } \\
-		\mathit{eval}(a - b) &= \set{ x - y &|\;& x \in eval(a), y \in eval(b) } \\
-		\mathit{eval}(a * b) &= \set{ x * y &|\;& x \in eval(a), y \in eval(b) } \\
-		\mathit{eval}(a / b) &= \set{ x / y &|\;& x \in eval(a), y \in eval(b), y \neq 0 }
-	\end{align*}
 
 	\subsection{Terms}
 	\subsubsection{Constants}
@@ -134,7 +130,7 @@
 		dt(\tuple{t_1};...;\tuple{t_n}) &= dt(\tuple{t_1}) \cup \dots \cup dt(\tuple{t_n})
 	\end{align*}
 
-	%% Function 
+	%% Function
 	\subsubsection{Functions}
 	For a term of form $f(\pool{t})$, where $f$ is a function and $\pool{t}$ a pool
 	\begin{align*}
@@ -236,7 +232,7 @@
 	\end{align*}
 
 	\subsection{Choice Rule}
-	For a choice rule $r$ in the form of (\ref{choice}) the following holds:
+	For a choice rule $r$ in the form of \eqref{choice} the following holds:
 	\begin{align*}
 		dep(r) &= \set{(\emptyset, vars(e_1\vee ... \vee e_k))} \cup dep(B_1) \cup ... \cup dep(B_m)
 	\end{align*}
@@ -267,3 +263,5 @@
 		\\ &= \dep{\set{X}, \emptyset}{\emptyset, \set{Y}}
 	\end{align*}
 \end{document}
+
+% vim: set noexpandtab:
