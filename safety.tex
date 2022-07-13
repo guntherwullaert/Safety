@@ -164,8 +164,8 @@
 	\end{itemize}
 	We define function~$\Depend$ for terms~$t$ as $\Depend(t) = \Vars(t) \setminus \Provide(t)$.
 
-	\subsection{Body Literals and Rules}
-	Next, we define function~$\ProDep$ for body literals and rules:
+	\subsection{Body Literals}
+	Next, we define function~$\ProDep$ for body literals:
 	\begin{itemize}
 		\item 
 			for an atom~$a$ of form~$p(\pool{t})$, we let
@@ -192,9 +192,6 @@
 			for an aggregate~$l$ of form~\eqref{aggregate} with ${\prec} \in \set{{=}}$, we let
 			$\ProDep(l) = \set{(\Provide(s), \Vars(\tuple{t_1} : \tuple{l_1}; \dots; \tuple{t_n} : \tuple{l_n})), (\emptyset,\Depend(s))}$.
 	\end{itemize}
-	Furthermore, we let $\ProDep_{|X}(l) = \set{(D \cap X, P \cap X) \mid (D, P) \in \ProDep(l)}$
-	to restrict variables in the dependency to the given set $X$ of variables.
-
 
 \subsection{Gathering Dependencies}
 	Next, we define function~$\Analyze$ to gather dependencies in rules, conditional literals, and aggregate elements:
@@ -227,9 +224,9 @@
 
 	Let $r$ be a rule with global variables $G$.
 	We say that a rule~$r$ is \emph{globally safe}
-	if $G$ is the least fixed point of $\CheckOp{\PD_{|G}}$ with $\PD=\Analyze(r)$.
+	if $G$ is the least fixed point of $\CheckOp{\PD}$ with $\PD=\Analyze{(r)}_{|G}$.
 	Furthermore, we say that a conditional literal or aggregate element $e$ occurring in rule~$r$ is \emph{locally safe}
-	if $L = \Vars(e) \setminus G$ is the least fixed point of $\CheckOp{\PD_{|L}}$ with $\PD=\Analyze(e)$.
+	if $L = \Vars(e) \setminus G$ is the least fixed point of $\CheckOp{\PD}$ with $\PD=\Analyze{(e)}_{|L}$.
 
 	A rule is \emph{safe} if it is globally safe and all occurrences of conditional literals and aggregate elements in it are locally safe.
 
