@@ -137,19 +137,25 @@
 	\begin{itemize}
 		\item
 			for numerals~$n$, we let
-			$\Provide(n) = \emptyset$,
+			$\Provide(n) = \emptyset$, $\Depend(n) = \emptyset$,
 		\item
 			for variables~$X$, we let
-			$\Provide(X) = \set{X}$,
+			$\Provide(X) = \set{X}$, $\Depend(X) = \emptyset$,
 		\item
 			for term tuples~$\tuple{t} = t_1,\dots,t_n$, we let
-			$\Provide(\tuple{t}) = \Provide(t_1) \cup \dots \cup \Provide(t_n)$,
+			\begin{align*}
+				\Provide(\tuple{t}) &= \Provide(t_1) \cup \dots \cup \Provide(t_n), \\
+				\Depend(\tuple{t}) &= (\Depend(t_1) \cup \dots \cup \Depend(t_n)) \setminus \Provide(\tuple{t}),
+			\end{align*}
 		\item
 			for pools~$\pool{t} = \tuple{t_1};\dots;\tuple{t_n}$, we let
-			$\Provide(\pool{t}) = \Provide(\tuple{t_1}) \cap \dots \cap \Provide(\tuple{t_n})$,
+			\begin{align*}
+				\Provide(\pool{t}) &= \Provide(\tuple{t_1}) \cap \dots \cap \Provide(\tuple{t_n}), \\
+				\Depend(\pool{t}) &= (\Depend(t_1) \cup \dots \cup \Depend(t_n)) \setminus \Provide(\pool{t}),
+			\end{align*}
 		\item
 			for terms of form~$f(\pool{t})$, we let
-			$\Provide(f(\pool{t})) = \Provide(\pool{t})$,
+			$\Provide(f(\pool{t})) = \Provide(\pool{t})$, $\Depend(f(\pool{t})) = \Depend(\pool{t})$,
 		\item
 			for terms of form~$t_1 \star t_2$, we let
 				\begin{align*}
@@ -161,8 +167,10 @@
 					\emptyset & \text{otherwise}
 				\end{cases}
 				\end{align*}
+				\begin{align*}
+					\Depend(\pool{t}) &= vars(t_1 \star t_2) \setminus \Provide(t_1 \star t_2)
+				\end{align*}
 	\end{itemize}
-	We define function~$\Depend$ for terms~$t$ as $\Depend(t) = \Vars(t) \setminus \Provide(t)$.
 
 	\subsection{Body Literals}
 	Next, we define function~$\ProDep$ for body literals:
@@ -232,10 +240,17 @@
 
 	\section{Other Examples}
 	\begin{align*}
-		dep(p(X,Y+Y)) &= \dep{\Provide(X,Y+Y), \emptyset}{\emptyset, \Depend(X,Y+Y)}
-		\\ &= \dep{\Provide(X) \cup \Provide(Y+Y), \emptyset}{\emptyset, \Depend(X) \cup \Depend(Y+Y)}
-		\\ &= \dep{\set{X} \cup \emptyset, \emptyset}{\emptyset, \emptyset \cup vars(Y+Y)}
-		\\ &= \dep{\set{X}, \emptyset}{\emptyset, \set{Y}}
+		dep(p(X;Y)) &= \set{(\Provide(X;Y), \emptyset), (\emptyset, \Depend(X;Y))} \\
+		&= \set{(\Provide(X) \cap \Provide(Y), \emptyset), (\emptyset, (\Depend(X) \cup \Depend{Y}) \setminus (\Provide(X) \cap \Provide(Y)))} \\
+		&= \set{(\set{X} \cap \set{Y}, \emptyset), (\emptyset, (\emptyset \cup \emptyset) \setminus (\set{X} \cap \set{Y}))} \\
+		&= \set{(\emptyset, \emptyset), (\emptyset, \emptyset)}
+	\end{align*}
+	\begin{align*}
+		dep(p(X;X+Y)) &= \set{(\Provide(X;X+Y), \emptyset), (\emptyset, \Depend(X;X+Y))} \\
+		&= \set{(\Provide(X) \cap \Provide(X+Y), \emptyset), (\emptyset, (\Depend(X) \cup \Depend{X+Y}) \setminus (\Provide(X) \cap \Provide(X+Y)))} \\
+		&= \set{(\set{X} \cap \emptyset, \emptyset), (\emptyset, (\emptyset \cup (\Vars(X+Y) \setminus \Provide(X+Y))) \setminus (\set{X} \cap \emptyset))} \\
+		&= \set{(\emptyset, \emptyset), (\emptyset, (\set{X,Y} \setminus \emptyset) \setminus \emptyset)} \\
+		&= \set{(\emptyset, \emptyset), (\emptyset, \set{X,Y})}
 	\end{align*}
 \end{document}
 
