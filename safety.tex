@@ -190,14 +190,7 @@
 			$\ProDep(l) = \ProDep(t_1 \mathrel{\Negate({\prec})} t_2)$,
 		\item
 			for conditional literal $l$, we let
-			$\ProDep(l) = \set{(\emptyset, \Vars(l))}$,\comment{%
-				We could use $\ProDep(l) = \set{(\emptyset, \Depend(l_0) \cup \Vars(l_1,\dots,l_n))}$
-				but would have to check that the remaining variables in $l_0$ are either provided elsewhere or do not occur in other conditional literals.
-				For example, \textit{clingo} accepts\par  $\quad\leftarrow p(X,Y):q(Y)$\par and\par $\quad\leftarrow p(X,Y):q(Y) \wedge r(X;Z)$\par as safe
-				but should discard\par $\quad\leftarrow p(X,Y):q(Y) \wedge r(X,Y):s(Y)$\par as unsafe.\par
-				\quad On the other hand, we could also omit this case altogether because it should not be relevant in practice at all.
-				(In \textit{clingo}, it is only implemented because of an internal rewriting step.)
-			}
+			$\ProDep(l) = \set{(\emptyset, \Vars(l))}$,
 		\item
 			for an aggregate~$l$ of form~\eqref{aggregate} with ${\prec} \notin \set{{=}}$, we let
 			$\ProDep(l) = \set{(\emptyset, \Vars(l))}$,
