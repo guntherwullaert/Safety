@@ -137,38 +137,36 @@
 	\begin{itemize}
 		\item
 			for numerals~$n$, we let
-			$\Provide(n) = \emptyset$, $\Depend(n) = \emptyset$,
+			$\Provide(n) = \emptyset$ and $\Depend(n) = \emptyset$,
 		\item
 			for variables~$X$, we let
-			$\Provide(X) = \set{X}$, $\Depend(X) = \emptyset$,
+			$\Provide(X) = \set{X}$ and $\Depend(X) = \emptyset$,
 		\item
 			for term tuples~$\tuple{t} = t_1,\dots,t_n$, we let
 			\begin{align*}
-				\Provide(\tuple{t}) &= \Provide(t_1) \cup \dots \cup \Provide(t_n), \\
+				\Provide(\tuple{t}) &= \Provide(t_1) \cup \dots \cup \Provide(t_n)\text{\ and} \\
 				\Depend(\tuple{t}) &= (\Depend(t_1) \cup \dots \cup \Depend(t_n)) \setminus \Provide(\tuple{t}),
 			\end{align*}
 		\item
 			for pools~$\pool{t} = \tuple{t_1};\dots;\tuple{t_n}$, we let
 			\begin{align*}
-				\Provide(\pool{t}) &= \Provide(\tuple{t_1}) \cap \dots \cap \Provide(\tuple{t_n}), \\
+				\Provide(\pool{t}) &= \Provide(\tuple{t_1}) \cap \dots \cap \Provide(\tuple{t_n})\text{\ and} \\
 				\Depend(\pool{t}) &= (\Depend(t_1) \cup \dots \cup \Depend(t_n)) \setminus \Provide(\pool{t}),
 			\end{align*}
 		\item
 			for terms of form~$f(\pool{t})$, we let
-			$\Provide(f(\pool{t})) = \Provide(\pool{t})$, $\Depend(f(\pool{t})) = \Depend(\pool{t})$,
+			$\Provide(f(\pool{t})) = \Provide(\pool{t})$ and $\Depend(f(\pool{t})) = \Depend(\pool{t})$,
 		\item
 			for terms of form~$t_1 \star t_2$, we let
 				\begin{align*}
-				\Provide(t_1 \star t_2) = \begin{cases}
-					\Provide(t_2) & \text{\shortstack[l]{$t_1$ is evaluable and ${\star} \in \set{{+}, {-}}$}, or}\\
-					              & \text{\shortstack[l]{$t_1$ is nonzero and ${\star} = {\times}$,}}\\
-					\Provide(t_1) & \text{\shortstack[l]{$t_2$ is evaluable and ${\star} \in \set{{+}, {-}}$}, or}\\
-					              & \text{\shortstack[l]{$t_2$ is nonzero and ${\star} = {\times}$,}}\\
+				\Provide(t_1 \star t_2) &= \begin{cases}
+					\Provide(t_2) & \text{$t_1$ is evaluable and ${\star} \in \set{{+}, {-}}$}, or\\
+					              & \text{$t_1$ is nonzero and ${\star} = {\times}$,}\\
+					\Provide(t_1) & \text{$t_2$ is evaluable and ${\star} \in \set{{+}, {-}}$}, or\\
+					              & \text{$t_2$ is nonzero and ${\star} = {\times}$,}\\
 					\emptyset & \text{otherwise}
-				\end{cases}
-				\end{align*}
-				\begin{align*}
-					\Depend(\pool{t}) &= vars(t_1 \star t_2) \setminus \Provide(t_1 \star t_2)
+				\end{cases}\\
+				\Depend(\pool{t}) &= vars(t_1 \star t_2) \setminus \Provide(t_1 \star t_2)
 				\end{align*}
 	\end{itemize}
 
